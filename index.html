@@ -3,36 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadowfax QR | Générateur de Table Pro</title>
+    <title>Shadowfax QR | Mode Pur</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --primary: #000000; --bg: #f4f4f4; }
-        body { font-family: 'Arial', sans-serif; background: var(--bg); color: black; text-align: center; padding: 40px; }
-        .card { background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        input, select { width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem; }
-        button { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 90%; margin-top: 20px; }
-        button:hover { background: #333; }
+        :root { --primary: #000; --bg: #ffffff; }
+        body { font-family: sans-serif; background: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         canvas { display: none; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1>Générateur QR Tables 📋</h1>
-        <p>Générez vos codes QR comme sur votre modèle PDF.</p>
-
-        <input type="text" id="urlInput" placeholder="Lien du menu (ex: https://...)" value="https://">
+        <h2>Générateur QR Pur</h2>
+        <input type="text" id="urlInput" placeholder="Collez votre lien ici" value="https://">
         
-        <label>Nombre de tables (1 page par table) :</label>
+        <label>Nombre de tables (pages) :</label>
         <select id="tableCount">
-            <option value="5">5 Tables</option>
-            <option value="10" selected>10 Tables</option>
-            <option value="20">20 Tables</option>
-            <option value="30">30 Tables</option>
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
         </select>
 
-        <button onclick="generateCleanPDF()">TÉLÉCHARGER LE PDF (HD)</button>
+        <button onclick="generatePurePDF()">TÉLÉCHARGER PDF</button>
     </div>
 
     <canvas id="qrCanvas"></canvas>
@@ -40,45 +37,34 @@
     <script>
         const { jsPDF } = window.jspdf;
 
-        async function generateCleanPDF() {
+        function generatePurePDF() {
             const url = document.getElementById('urlInput').value;
             const count = parseInt(document.getElementById('tableCount').value);
             
-            if (!url || url === "https://") return alert("Veuillez entrer le lien de votre menu !");
+            if (!url || url === "https://") return alert("Lien invalide");
 
             const doc = new jsPDF();
-            const qrSize = 1200; // Très haute définition pour impression
+            const canvas = document.getElementById('qrCanvas');
+            const qrSize = 1200; // Haute définition
 
             for (let i = 1; i <= count; i++) {
                 if (i > 1) doc.addPage();
 
-                // 1. Génération du QR Code Net (Sans logo)
-                const canvas = document.getElementById('qrCanvas');
                 new QRious({
                     element: canvas,
                     value: url,
                     size: qrSize,
-                    level: 'H' // Correction maximale
+                    level: 'H'
                 });
 
                 const qrImage = canvas.toDataURL('image/png');
 
-                // 2. Mise en page conforme au PDF fourni
-                doc.setFont("helvetica", "bold");
-                
-                // Texte du haut
-                doc.setFontSize(24);
-                doc.text("LE MENU EST ICI ↓", 105, 50, { align: "center" });
-
-                // QR Code principal (grand et centré)
-                doc.addImage(qrImage, 'PNG', 45, 75, 120, 120);
-
-                // Texte du bas (Numéro de table)
-                doc.setFontSize(20);
-                doc.text(`Table ${i}`, 105, 220, { align: "center" });
+                // On place juste le QR Code au centre de la page A4
+                // x: 35, y: 70, largeur: 140, hauteur: 140
+                doc.addImage(qrImage, 'PNG', 35, 70, 140, 140);
             }
 
-            doc.save(`Shadowfax_QR_Tables_1a${count}.pdf`);
+            doc.save(`QR_Pur_1a${count}.pdf`);
         }
     </script>
 </body>
