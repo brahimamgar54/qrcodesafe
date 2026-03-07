@@ -3,62 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de QR Code Gratuit</title>
+    <title>Shadowfax | Générateur QR Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; background: #f4f4f4; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
-        input { padding: 10px; width: 250px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 20px; }
-        button { padding: 10px 20px; background: #ff4500; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #qrcode { margin-top: 20px; padding: 10px; background: white; }
-        #download { margin-top: 20px; display: none; text-decoration: none; color: #007bff; font-weight: bold; }
+        :root { --primary: #ff4500; --bg: #0a0a0b; --card: #141416; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 100%; max-width: 400px; border: 1px solid #333; }
+        h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        p { color: #888; font-size: 0.9rem; margin-bottom: 30px; }
+        input { width: 100%; padding: 12px; background: #222; border: 1px solid #444; border-radius: 8px; color: white; margin-bottom: 20px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
+        .btn-gen { background: var(--primary); color: white; }
+        .btn-pdf { background: #fff; color: #000; display: none; }
+        #qrcode { background: white; padding: 15px; display: inline-block; border-radius: 10px; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Générateur de QR Code</h2>
-        <p>Entrez le lien de votre menu :</p>
-        <input type="text" id="url" placeholder="https://votre-site.vercel.app">
-        <br>
-        <button onclick="generateQR()">Générer le QR Code</button>
+    <div class="container">
+        <h1>Shadow<span>fax</span> QR</h1>
+        <p>Générateur de QR Codes illimités sans expiration</p>
+        
+        <input type="text" id="urlInput" placeholder="https://votre-menu.vercel.app">
+        
+        <button class="btn-gen" onclick="generateQR()">GÉNÉRER LE CODE</button>
         
         <div id="qrcode"></div>
         
-        <a id="download" download="qrcode-menu.png">📥 Télécharger l'image</a>
+        <button id="pdfBtn" class="btn-pdf" onclick="downloadPDF()">TÉLÉCHARGER QUALITÉ PDF</button>
     </div>
 
     <script>
+        let qrcodeInstance = null;
+
         function generateQR() {
-            const url = document.getElementById('url').value;
-            const qrcodeDiv = document.getElementById('qrcode');
-            const downloadLink = document.getElementById('download');
+            const url = document.getElementById('urlInput').value;
+            const qrDiv = document.getElementById('qrcode');
+            const pdfBtn = document.getElementById('pdfBtn');
 
-            // On vide le QR code précédent s'il existe
-            qrcodeDiv.innerHTML = "";
+            if (!url) return alert("Veuillez entrer un lien !");
 
-            if (url.trim() !== "") {
-                // Génération du QR Code
-                const qrcode = new QRCode(qrcodeDiv, {
-                    text: url,
-                    width: 200,
-                    height: 200,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
+            qrDiv.innerHTML = "";
+            qrDiv.style.display = "inline-block";
+            
+            qrcodeInstance = new QRCode(qrDiv, {
+                text: url,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H // Haute tolérance aux erreurs (meilleure qualité)
+            });
 
-                // Petit délai pour laisser le temps au QR code de se dessiner avant de permettre le téléchargement
-                setTimeout(() => {
-                    const img = qrcodeDiv.querySelector('img');
-                    if (img) {
-                        downloadLink.href = img.src;
-                        downloadLink.style.display = "block";
-                    }
-                }, 300);
-            } else {
-                alert("Veuillez entrer un lien valide !");
-            }
+            setTimeout(() => { pdfBtn.style.display = "block"; }, 500);
+        }
+
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const imgData = document.querySelector("#qrcode img").src;
+
+            // Ajout du texte Shadowfax sur le PDF
+            doc.setFontSize(20);
+            doc.text("Votre Menu Shadowfax", 105, 40, { align: "center" });
+            
+            // Ajout du QR Code au centre du PDF (haute résolution)
+            doc.addImage(imgData, 'PNG', 55, 60, 100, 100);
+            
+            doc.setFontSize(10);
+            doc.text("Généré par Shadowfax - Connexion instantanée", 105, 170, { align: "center" });
+
+            doc.save("QR-Code-Shadowfax.pdf");
         }
     </script>
 </body>
