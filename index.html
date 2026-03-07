@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadowfax QR Pro | Générateur de Table</title>
+    <title>Shadowfax QR | Générateur de Table Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --primary: #ff4500; --bg: #0a0a0b; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; text-align: center; padding: 40px; }
-        .card { background: #141416; padding: 30px; border-radius: 20px; max-width: 500px; margin: auto; border: 1px solid #333; }
-        input, select { width: 80%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: white; }
-        button { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 85%; }
-        #preview-container { margin-top: 20px; background: white; padding: 20px; display: inline-block; border-radius: 10px; display: none; }
-        canvas { display: none; } /* On cache le canvas de calcul */
+        :root { --primary: #000000; --bg: #f4f4f4; }
+        body { font-family: 'Arial', sans-serif; background: var(--bg); color: black; text-align: center; padding: 40px; }
+        .card { background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        input, select { width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem; }
+        button { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 90%; margin-top: 20px; }
+        button:hover { background: #333; }
+        canvas { display: none; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1 style="color:var(--primary)">SHADOWFAX QR 🚀</h1>
-        <p>Génération de QR Codes HD pour Tables</p>
+        <h1>Générateur QR Tables 📋</h1>
+        <p>Générez vos codes QR comme sur votre modèle PDF.</p>
 
-        <input type="text" id="urlInput" placeholder="URL du menu (ex: https://...)" value="https://">
+        <input type="text" id="urlInput" placeholder="Lien du menu (ex: https://...)" value="https://">
         
-        <label>Nombre de tables à générer :</label>
+        <label>Nombre de tables (1 page par table) :</label>
         <select id="tableCount">
             <option value="5">5 Tables</option>
             <option value="10" selected>10 Tables</option>
@@ -32,9 +32,7 @@
             <option value="30">30 Tables</option>
         </select>
 
-        <button onclick="generateFullPDF()">GÉNÉRER LE PDF SÉRIE (1 à X)</button>
-        
-        <p style="font-size: 0.8rem; color: #666; margin-top: 15px;">Le PDF contiendra une page par table avec logo et numérotation.</p>
+        <button onclick="generateCleanPDF()">TÉLÉCHARGER LE PDF (HD)</button>
     </div>
 
     <canvas id="qrCanvas"></canvas>
@@ -42,71 +40,45 @@
     <script>
         const { jsPDF } = window.jspdf;
 
-        async function generateFullPDF() {
+        async function generateCleanPDF() {
             const url = document.getElementById('urlInput').value;
             const count = parseInt(document.getElementById('tableCount').value);
             
-            if (!url || url === "https://") return alert("Lien manquant !");
+            if (!url || url === "https://") return alert("Veuillez entrer le lien de votre menu !");
 
             const doc = new jsPDF();
-            const qrSize = 1000; // Résolution HD
+            const qrSize = 1200; // Très haute définition pour impression
 
             for (let i = 1; i <= count; i++) {
                 if (i > 1) doc.addPage();
 
-                // 1. Générer le QR Code de base sur un Canvas
+                // 1. Génération du QR Code Net (Sans logo)
                 const canvas = document.getElementById('qrCanvas');
-                const qr = new QRious({
+                new QRious({
                     element: canvas,
                     value: url,
                     size: qrSize,
-                    level: 'H' // Qualité maximale
+                    level: 'H' // Correction maximale
                 });
-
-                const ctx = canvas.getContext('2d');
-
-                // 2. Ajouter le LOGO Shadowfax au milieu
-                // On dessine un petit cercle blanc puis le logo (un cheval simplifié ou texte)
-                const center = qrSize / 2;
-                const logoSize = qrSize * 0.2;
-                
-                ctx.fillStyle = "white";
-                ctx.beginPath();
-                ctx.arc(center, center, logoSize/1.5, 0, 2 * Math.PI);
-                ctx.fill();
-
-                ctx.fillStyle = "#ff4500"; // Couleur Shadowfax
-                ctx.font = `bold ${logoSize/2}px Arial`;
-                ctx.textAlign = "center";
-                ctx.fillText("SF", center, center + (logoSize/6)); // "SF" pour Shadowfax
 
                 const qrImage = canvas.toDataURL('image/png');
 
-                // 3. Mise en page du PDF
-                // Titre "Le menu est ici"
+                // 2. Mise en page conforme au PDF fourni
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(22);
-                doc.setTextColor(0, 0, 0);
-                doc.text("LE MENU EST ICI", 105, 40, { align: "center" });
                 
-                // Flèche
-                doc.setFontSize(30);
-                doc.text("⬇", 105, 55, { align: "center" });
+                // Texte du haut
+                doc.setFontSize(24);
+                doc.text("LE MENU EST ICI ↓", 105, 50, { align: "center" });
 
-                // QR Code (centré)
-                doc.addImage(qrImage, 'PNG', 45, 70, 120, 120);
+                // QR Code principal (grand et centré)
+                doc.addImage(qrImage, 'PNG', 45, 75, 120, 120);
 
-                // Numéro de table
-                doc.setFontSize(18);
-                doc.text(`TABLE N° ${i}`, 105, 210, { align: "center" });
-                
-                // Signature Shadowfax
-                doc.setFontSize(10);
-                doc.setTextColor(150, 150, 150);
-                doc.text("Propulsé par Shadowfax Link", 105, 280, { align: "center" });
+                // Texte du bas (Numéro de table)
+                doc.setFontSize(20);
+                doc.text(`Table ${i}`, 105, 220, { align: "center" });
             }
 
-            doc.save(`Shadowfax-Série-${count}-tables.pdf`);
+            doc.save(`Shadowfax_QR_Tables_1a${count}.pdf`);
         }
     </script>
 </body>
